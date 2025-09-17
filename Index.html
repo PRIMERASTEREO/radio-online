@@ -379,18 +379,12 @@
 </div>
 </div>
 
-<script src="lunaradio-animado.js"></script>
-<script>
-$("#player").lunaradio({
-token: "",
-userinterface: "big", //big o small
-backgroundcolor: "#023fba",
-fontcolor: "#FFFFFF",
-hightlightcolor: "#023fba", 
-fontname: "Unica One",
-googlefont: "Unica+One&display=swap", 
-fontratio: "0.6", 
-radioname: "PRIMERA STEREO Radio Online", //nombre de radio
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://extassisnetwork.com/player/Luna/luna.js"></script>
+<div id="extassisnetwork" style="width:100%; height:100%;"></div>
+<script> $("#extassisnetwork").lunaradio({ 
+streamurl: "http://usa7.fastcast4u.com:5388", 
+radioname: "PRIMERA STEREO",
 scroll: "true",
 autoplay: "true", 
 coverimage: "NewLogo-Primera.png", //link o ruta de logo radio
@@ -460,4 +454,5 @@ debug: "false",
 </body>
 
 </html>
+
 
