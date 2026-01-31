@@ -378,9 +378,9 @@
 <script>
 $("#player").lunaradio({
 itunestoken: "1000lIPN",
-streamurl: "https://usa7.fastcast4u.com/proxy/primerastereo", 
+streamurl: "https://primerastereo.stream.laut.fm/", 
 radioname: "ESTAS ESCUCHANDO POR PRIMERA STEREO ONLINE... ", 
-coverimage: "https://primerastereofmradio.netlify.app/images/Nuevo%20Logo.png", 
+coverimage: "https://github.com/PRIMERASTEREO/primerastereoonline/blob/main/icons/favicon.png", 
 onlycoverimage: false, 
 userinterface: "big", 
 backgroundcolor: "", 
@@ -398,24 +398,25 @@ coverstyle: "animated",
 usevisualizer: "real", 
 visualizertype: "7",
 multicolorvisualizer: "true",
-color1: "#0291f7",
-color2: "#ffff00",
-color3: "#FF1F6F",
-color4: "#FF7F00",
+color1: "#f8fc03",
+color2: "#032cfc",
+color3: "#032cfc",
+color4: "#fc0303",
 visualizeropacity: "5.0",
 visualizerghost: "5.0",
 visualizerblur: "5",
 visualizerghostblur: "5",
-metadatatechnic: "corsproxy",
-ownmetadataurl: "", 
-streamtype: "shoutcast2", 
-shoutcastpath: "/stream", 
+metadatatechnic: "ownmetadataurl", //fallback (usar para zeno)
+ownmetadataurl: "https://api.laut.fm/station/primerastereo/current_song.txt",
+streamtype: "icecast2",
+icecastmountpoint: "/primerastereo",	
+shoutcastpath: "", 
 shoutcastid: "1", 
 metadatainterval: "5000",
 volume: "25",
 autoplay: "true",
 displayliveicon: "true",
-usestreamcorsproxy: "true",
+usestreamcorsproxy: "false",
 corsproxy: "",
 });
 </script>
@@ -454,6 +455,7 @@ corsproxy: "",
 </body>
 
 </html>
+
 
 
 
