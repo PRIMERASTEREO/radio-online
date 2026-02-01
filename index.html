@@ -362,7 +362,7 @@
 </div>
 </div>
 <div class="copyright1">
-&copy; Copyright 2010 --  <span id="year"></span> | <a href="https://primerastereo.netlify.app/" target="_blank">PRIMERA STEREO Radio Online</a>
+&copy; Copyright 2010 -  <span id="year"></span> | <a href="https://primerastereo.netlify.app/" target="_blank">PRIMERA STEREO Radio Online</a>
 </div>
 </div>
 </div>
@@ -413,7 +413,69 @@ usestreamcorsproxy: "false",
 corsproxy: "",
 });
 </script>
+<script>
+    // URL de la API de Laut.fm para obtener la canción actual
+    const API_URL = "https://api.laut.fm/station/primerastereo/current_song";
+    let lastMetadata = "";
 
+    // 1. FUNCIÓN: Busca la carátula en iTunes
+    function fetchCoverArt(artist, title, callback) {
+        const searchTerm = encodeURIComponent(`${artist} ${title}`);
+        const itunesApi = `https://itunes.apple.com/search?term=${searchTerm}&media=music&entity=song&limit=1`;
+        
+        // Carátula de respaldo si la búsqueda falla
+        const fallbackArtwork = 'assets/favicon.png'; 
+
+        $.getJSON(itunesApi, (data) => {
+            if (data.resultCount > 0) {
+                // Toma la URL de la carátula y la escala a un tamaño mayor (300x300)
+                const artworkUrl = data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
+                callback(artworkUrl);
+            } else {
+                callback(fallbackArtwork);
+            }
+        }).fail(() => {
+            callback(fallbackArtwork);
+        });
+    }
+
+    // 2. FUNCIÓN: Obtiene metadatos de Laut.fm e inyecta en Luna Radio
+    function fetchAndUpdateLunaRadio() {
+        $.getJSON(API_URL, (data) => {
+            // VERIFICACIÓN: Nos aseguramos de que data.artist y data.artist.name existan
+            if (data && data.title && data.artist && data.artist.name) {
+                const title = data.title;
+                const artistName = data.artist.name; // <--- ¡CORRECCIÓN CLAVE!
+
+                // Genera la cadena de metadatos (ej. "Elton John - Nikita")
+                const newMetadata = `${artistName} - ${title}`;
+
+                // Verifica si el metadato ha cambiado antes de actualizar (optimización)
+                if (newMetadata !== lastMetadata) {
+                    lastMetadata = newMetadata;
+                    
+                    fetchCoverArt(artistName, title, (artworkUrl) => { // Usa artistName
+                        // Formato requerido por lunaradio_set_metadata: TÍTULO|CARÁTULA|RADIO_NAME
+                        const metadataString = `${newMetadata}|${artworkUrl}|LAS 24 HORAS`; 
+
+                        // Inyección real de los datos en Luna Radio
+                        if (typeof lunaradio_set_metadata === 'function') {
+                            lunaradio_set_metadata(metadataString);
+                            console.log(`[LunaRadio] Metadatos actualizados: ${newMetadata}`);
+                        }
+                    });
+                }
+            }
+        }).fail((jqXHR, textStatus, errorThrown) => {
+            console.error(`Error al obtener datos de Laut.fm: ${textStatus}, ${errorThrown}`);
+        });
+    }
+
+    // 3. LLAMADAS: Inicia la actualización inmediatamente y luego cada 8 segundos (8000 ms)
+    fetchAndUpdateLunaRadio();
+    setInterval(fetchAndUpdateLunaRadio, 8000); 
+
+</script>
 <script>
     function relogio() {
         let formatter = new Intl.DateTimeFormat('es-VE', { timeStyle: 'medium' });
@@ -448,6 +510,7 @@ corsproxy: "",
 </body>
 
 </html>
+
 
 
 
