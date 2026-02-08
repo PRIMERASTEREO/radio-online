@@ -467,37 +467,36 @@ corsproxy: "",
         });
     }
 
-    // 2. FUNCIÓN: Obtiene metadatos de Laut.fm e inyecta en Luna Radio
-    function fetchAndUpdateLunaRadio() {
+// 2. Lógica Ultra-Lite de Metadatos (iTunes + Laut.fm)
+    const API_URL = "https://api.laut.fm/station/primerastereo/current_song";
+    let lastMeta = "";
+
+    function updateLogic() {
         $.getJSON(API_URL, (data) => {
-            // VERIFICACIÓN: Nos aseguramos de que data.artist y data.artist.name existan
-            if (data && data.title && data.artist && data.artist.name) {
-                const title = data.title;
-                const artistName = data.artist.name; // <--- ¡CORRECCIÓN CLAVE!
+            if (!data || !data.artist) return;
+            
+            const current = `${data.artist.name} - ${data.title}`;
+            if (current === lastMeta) return; // Si la canción no ha cambiado, termina aquí (ahorra CPU)
+            
+            lastMeta = current;
+            const query = encodeURIComponent(current);
+            
+            // Búsqueda en iTunes optimizada: 1 solo resultado
+            $.getJSON(`https://itunes.apple.com/search?term=${query}&media=music&limit=1`, (itunes) => {
+                const cover = (itunes.resultCount > 0) 
+                    ? itunes.results[0].artworkUrl100.replace('100x100bb', '300x300bb') 
+                    : "https://primerastereo.netlify.app/favicon.png";
 
-                // Genera la cadena de metadatos (ej. "Elton John - Nikita")
-                const newMetadata = `${artistName} - ${title}`;
-
-                // Verifica si el metadato ha cambiado antes de actualizar (optimización)
-                if (newMetadata !== lastMetadata) {
-                    lastMetadata = newMetadata;
-                    
-                    fetchCoverArt(artistName, title, (artworkUrl) => { // Usa artistName
-                        // Formato requerido por lunaradio_set_metadata: TÍTULO|CARÁTULA|RADIO_NAME
-                        const metadataString = `${newMetadata}|${artworkUrl}|LAS 24 HORAS`; 
-
-                        // Inyección real de los datos en Luna Radio
-                        if (typeof lunaradio_set_metadata === 'function') {
-                            lunaradio_set_metadata(metadataString);
-                            console.log(`[LunaRadio] Metadatos actualizados: ${newMetadata}`);
-                        }
-                    });
+                if (typeof lunaradio_set_metadata === "function") {
+                    lunaradio_set_metadata(`${current}|${cover}|LAS 24 HORAS`);
                 }
-            }
-        }).fail((jqXHR, textStatus, errorThrown) => {
-            console.error(`Error al obtener datos de Laut.fm: ${textStatus}, ${errorThrown}`);
-        });
+            });
+        }).fail(() => console.log("Error de red, reintentando..."));
     }
+
+    // Ejecución cada 15 segundos para máxima fluidez en el J2 y Windows 7
+    setInterval(updateLogic, 15000); 
+    updateLogic();
 
     // 3. LLAMADAS: Inicia la actualización inmediatamente y luego cada 8 segundos (8000 ms)
     fetchAndUpdateLunaRadio();
@@ -521,36 +520,3 @@ corsproxy: "",
 	
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
