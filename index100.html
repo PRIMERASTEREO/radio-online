@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIMERA STEREO | Radio Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --primary-color: #6c5ce7; --bg-dark: #000000; --accent: #FFFF00; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-dark); color: white; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .bg-layer { position: absolute; top:0; left:0; width:100%; height:100%; background-size: cover; background-position: center; filter: blur(60px) brightness(0.2); z-index: -2; transition: 2s; }
+        .bg-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.9)); z-index: -1; }
+        
+        /* Menú Lateral */
+        #menu-toggle { display: none; }
+        .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; cursor: pointer; color: white; font-size: 22px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; }
+        .side-menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: rgba(10, 10, 10, 0.98); transition: 0.4s; z-index: 1050; padding: 20px; border-right: 1px solid var(--primary-color); overflow-y: auto; }
+        #menu-toggle:checked + .side-menu { left: 0; }
+        
+        .btn-social { display: flex; align-items: center; padding: 10px 15px; margin-bottom: 6px; border-radius: 8px; text-decoration: none; color: white; font-size: 1.00rem; background: rgba(255,255,255,0.05); transition: 0.3s; }
+        .btn-social i { margin-right: 12px; width: 22px; text-align: center; }
+        
+        /* Colores de Iconos */
+        .instagram i { color: #E1306C; }
+        .facebook i  { color: #1877F2; }
+        .twitter i   { color: #1DA1F2; }
+        .whatsapp i  { color: #25D366; }
+        .telegram i  { color: #0088CC; }
+        .tiktok i    { color: #00f2ea; }
+        .soundcloud i { color: #FF5500; }
+        .youtube i   { color: #FF0000; }
+        .x-twitter i { color: #FFFFFF; }
+        .threads i   { color: #FFFFFF; }
+        .app-store i { color: #A4C639; }
+
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
+        .main-title { color: var(--accent); font-size: 1.8rem; letter-spacing: 2px; }
+        .sub-title { letter-spacing: 6px; opacity: 0.7; font-size: 0.7rem; margin-bottom: 20px; text-transform: uppercase; }
+        
+        /* Contenedor de Logo/Video */
+        .logo-container { width: 310px; height: 310px; border-radius: 15px; overflow: hidden; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.9); background: #111; margin-bottom: 20px; }
+        #video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        /* Estilos para reproductores (Zoom 1.8 respetado) */
+        #yt-player, #dm-player { width: 100%; height: 100%; border: none; transform: scale(1.8); pointer-events: none; opacity: 0; transition: 1s; position: absolute; top: 0; left: 0; }
+        
+        #album-art { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 2; transition: 1.5s; }
+
+        @keyframes pulse-extra {
+            0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px var(--accent)); }
+            50% { transform: scale(1.05); filter: brightness(1.2) drop-shadow(0 0 25px var(--accent)); }
+            100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px var(--accent)); }
+        }
+        .animar-logo { animation: pulse-extra 2s infinite ease-in-out; }
+
+        #artist-name { font-size: 1.5rem; font-weight: 600; }
+        #song-title { color: var(--primary-color); font-size: 1.1rem; }
+
+        footer { padding: 25px; display: flex; flex-direction: column; align-items: center; }
+        .play-btn { width: 65px; height: 65px; border-radius: 50%; background: var(--primary-color); border: none; color: white; cursor: pointer; font-size: 1.3rem; }
+        #volume-slider { width: 220px; margin-top: 15px; accent-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="bg-layer" id="bg-layer"></div>
+    <div class="bg-overlay"></div>
+    
+    <label for="menu-toggle" class="menu-btn"><i class="fas fa-bars"></i></label>
+    <input type="checkbox" id="menu-toggle">
+
+    <aside class="side-menu">
+        <h3 style="color:var(--accent); margin-bottom:20px; padding-left:40px;">SÍGUENOS</h3>
+        <a href="https://www.instagram.com/Primera.Stereo/" target="_blank" class="btn-social instagram"><i class="fab fa-instagram"></i> Instagram</a>
+        <a href="https://www.facebook.com/PrimeraStereoRadio" target="_blank" class="btn-social facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+        <a href="https://twitter.com/PrimeraStereo" target="_blank" class="btn-social twitter"><i class="fab fa-twitter"></i> Twitter</a>
+        <a href="https://api.whatsapp.com/send?phone=+5804127097429" target="_blank" class="btn-social whatsapp"><i class="fab fa-whatsapp"></i> Whatsapp</a>
+        <a href="https://t.me/PrimeraStereo" target="_blank" class="btn-social telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
+        <a href="https://www.tiktok.com/@primerastereo" target="_blank" class="btn-social tiktok"><i class="fab fa-tiktok"></i> Tiktok</a>
+        <a href="https://soundcloud.com/primerastereo" target="_blank" class="btn-social soundcloud"><i class="fab fa-soundcloud"></i> Soundcloud</a>
+        <a href="https://www.youtube.com/@primerastereo" target="_blank" class="btn-social youtube"><i class="fab fa-youtube"></i> Youtube</a>
+        <a href="https://x.com/PrimeraStereo" target="_blank" class="btn-social x-twitter"><i class="fab fa-x-twitter"></i> Twitter / X</a>
+        <a href="https://www.threads.net/@primera.stereo" target="_blank" class="btn-social threads"><i class="fas fa-at"></i> Threads</a>
+        <a href="https://www.appcreator24.com/app3819260-6rbmq8" target="_blank" class="btn-social app-store"><i class="fab fa-google-play"></i> Descargar App</a>
+    </aside>
+
+    <main>
+        <h1 class="main-title">PRIMERA STEREO</h1>
+        <p class="sub-title">Radio Video Online</p>
+        <div class="logo-container">
+            <div id="video-container">
+                <div id="yt-player"></div>
+                <div id="dm-player"></div> </div>
+            <img src="https://primerastereo.netlify.app/favicon.png" id="album-art">
+        </div>
+        <div class="track-info">
+            <h2 id="artist-name">ESPERANDO SEÑAL</h2>
+            <p id="song-title">Cargando salsa...</p>
+        </div>
+    </main>
+
+    <footer>
+        <button id="play-btn" class="play-btn"><i class="fas fa-play"></i></button>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.8">
+        <p style="font-size: 0.6rem; opacity: 0.4; margin-top: 10px;">© 2010 - 2026 PRIMERA STEREO RADIO VIDEO ONLINE</p>
+    </footer>
+
+    <audio id="audio-player" src="https://primerastereo.stream.laut.fm/primerastereo" crossorigin="anonymous"></audio>
+
+    <script src="https://api.dmcdn.net/all.js"></script>
+    <script>
+        const art = document.getElementById('album-art');
+        const bg = document.getElementById('bg-layer');
+        const audio = document.getElementById('audio-player');
+        let player; // YouTube
+        let dmPlayer; // Dailymotion
+        let errorYoutube = false;
+        let currentQuery = "";
+
+        // CARGAR API DE YOUTUBE
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100%', width: '100%',
+                playerVars: { 'autoplay': 1, 'mute': 1, 'controls': 0, 'modestbranding': 1, 'rel': 0 },
+                events: { 'onError': onPlayerError }
+            });
+        }
+
+        // Si YouTube falla, intentamos Dailymotion
+        function onPlayerError(event) {
+            console.log("YouTube bloqueado. Iniciando Plan B (Dailymotion)...");
+            errorYoutube = true;
+            document.getElementById('yt-player').style.opacity = "0";
+            buscarDailymotion(currentQuery);
+        }
+
+        function buscarDailymotion(query) {
+            fetch(`https://api.dailymotion.com/videos?search=${encodeURIComponent(query)}&fields=id&limit=1`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.list.length > 0) {
+                    const videoId = data.list[0].id;
+                    if (!dmPlayer) {
+                        dmPlayer = DM.player(document.getElementById('dm-player'), {
+                            video: videoId, width: "100%", height: "100%",
+                            params: { autoplay: true, mute: true, controls: false }
+                        });
+                    } else {
+                        dmPlayer.load(videoId);
+                    }
+                    // Mostrar Dailymotion tras un breve delay para carga
+                    setTimeout(() => {
+                        document.getElementById('dm-player').style.opacity = "1";
+                        art.style.opacity = "0";
+                    }, 3000);
+                } else {
+                    art.style.opacity = "1"; // Si tampoco hay en DM, dejamos carátula
+                }
+            });
+        }
+
+        async function update() {
+            try {
+                const res = await fetch('https://api.laut.fm/station/primerastereo/current_song');
+                const data = await res.json();
+                
+                if (document.getElementById('song-title').innerText !== data.title) {
+                    const artist = data.artist.name;
+                    const title = data.title;
+                    currentQuery = artist + " " + title;
+
+                    document.getElementById('artist-name').innerText = artist;
+                    document.getElementById('song-title').innerText = title;
+
+                    // Reset visual total
+                    if(player && player.stopVideo) player.stopVideo();
+                    if(dmPlayer && dmPlayer.pause) dmPlayer.pause();
+                    document.getElementById('yt-player').style.opacity = "0";
+                    document.getElementById('dm-player').style.opacity = "0";
+                    art.style.opacity = "1";
+                    art.classList.remove('animar-logo');
+                    errorYoutube = false;
+
+                    const esJingle = artist.toUpperCase().includes("PRIMERA STEREO") || title.toUpperCase().includes("JINGLE");
+
+                    if (esJingle) {
+                        art.src = "https://primerastereo.netlify.app/favicon.png";
+                        art.classList.add('animar-logo'); 
+                    } else {
+                        const itunes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(currentQuery)}&entity=song&limit=1`);
+                        const iData = await itunes.json();
+                        let img = (iData.results.length > 0) ? iData.results[0].artworkUrl100.replace('100x100', '600x600') : 'https://primerastereo.netlify.app/favicon.png';
+                        art.src = img;
+                        bg.style.backgroundImage = `url('${img}')`;
+
+                        // Intento Plan A: YouTube
+                        fetch(`https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent('https://www.youtube.com/results?search_query=' + currentQuery + ' official video')}`)
+                        .then(r => r.text())
+                        .then(html => {
+                            const id = html.match(/"videoId":"([^"]+)"/);
+                            if (id && id[1] && player && player.loadVideoById) {
+                                player.loadVideoById({ videoId: id[1], startSeconds: 0 });
+                                player.mute();
+                                
+                                setTimeout(() => { 
+                                    if (document.getElementById('song-title').innerText === title) {
+                                        if (!errorYoutube && player.getPlayerState() === 1) {
+                                            art.style.opacity = "0"; 
+                                            document.getElementById('yt-player').style.opacity = "1"; 
+                                        }
+                                    }
+                                }, -03000); // Tiempo experimental respetado
+                            }
+                        });
+                    }
+                }
+            } catch (e) { console.log("Sincronizando..."); }
+        }
+
+        document.getElementById('play-btn').onclick = () => {
+            if (audio.paused) { audio.play(); document.getElementById('play-btn').innerHTML = '<i class="fas fa-pause"></i>'; }
+            else { audio.pause(); document.getElementById('play-btn').innerHTML = '<i class="fas fa-play"></i>'; }
+        };
+        document.getElementById('volume-slider').oninput = (e) => audio.volume = e.target.value;
+        setInterval(update, 15000);
+        update();
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey && event.key === 'u') || (event.ctrlKey && event.shiftKey && event.key === 'I') || event.key === 'F12') {
+                event.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
