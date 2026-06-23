@@ -57,8 +57,8 @@
         .metadata-artist { color: #fc7f03 !important; font-weight: bold; }
         .metadata-separator { color: #ffffff !important; margin: 0 6px; }
         .metadata-track { color: #00d4ff !important; font-weight: bold; }
-        .marquee-container { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; height: 10px; }
-        .marquee-text { display: inline-block; white-space: nowrap; position: absolute; animation: marqueeEffect 14s linear infinite; }
+        .marquee-container { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; height: 20px; }
+        .marquee-text { display: inline-block; white-space: nowrap; position: absolute; animation: marqueeEffect 14s linear infinite; line-height: 20px; }
         @keyframes marqueeEffect { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .footer-section { z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: 5px; flex-shrink: 0; }
         .social-title { font-size: 8pt; color: #00d4ff !important; font-weight: bold; }
@@ -73,7 +73,6 @@
         .social-btn.whatsapp:hover { background: #20e825; }
         .copyright { font-size: 8pt; color: #00d4ff; line-height: 1.3; }
         @media (max-height: 660px) or (max-width: 480px) { .player-card, .status-badge { max-width: 320px; font-size: 8pt; } .player-card { height: 310px; } .main-logo { font-size: 18pt; } .play-btn { width: 55px; height: 55px; font-size: 20px; } .bars-container { height: 25px; } }
-
     </style>
 </head>
 <body>
@@ -110,7 +109,7 @@
 
         <div class="footer-section">
             <div id="banner-container" style="width: 100%; max-width: 440px; margin: 0 auto 0px auto; display: flex; flex-direction: column; align-items: center; padding: 0 0px;">
-			<div style="font-size: 12px; color: #fc7f03 !important; font-weight: bold; font-family: Verdana; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase;">Publicidad</div>
+                <div style="font-size: 12px; color: #fc7f03 !important; font-weight: bold; font-family: Verdana; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase;">Publicidad</div>
                 <a id="ad-link" href="" target="_blank" style="width: 100%; display: block;">
                     <img id="ad-banner" src="https://primerastereo.netlify.app/disponible3.jpg" alt="Publicidad" style="width: 100%; height: 50px; object-fit: fill; border: 0; border-radius: 4px;">
                 </a>
@@ -132,49 +131,46 @@
                 </span>
             </div>
 
-            <footer>
+            <footer style="width: 100%;">
                 <p style="margin: 0px 0 0 0; color: #ff7b00; font-size: 10px; font-family: sans-serif; text-align: center;">Gracias por visitarnos!</p>
                 <div style="font-family: Arial, sans-serif; font-size: 10px; color: #00d4ff; margin-top: 2px; text-align: center;">
-                    Visitas: <span id="mi-contador" style="font-weight: bold; color: #ff7b00;">1236783</span>
+                    Visitas: <span id="mi-contador" style="font-weight: bold; color: #ff7b00;">1,236,783</span>
                 </div>
-
                 <img src="https://counter7.optistats.ovh/private/contadorvisitasgratis.php?c=m3b8llx9qnmw761p4f9b8efb4899b82c" style="display:none;" alt="contador" onload="registrarVisita()">
-                
-                <script>
-                    const banners = [
-                        { img: "https://primerastereo.netlify.app/disponible2.jpg", link: "https://api.whatsapp.com/send?phone=+5804127097429" },
-                        { img: "https://primerastereo.netlify.app/Alvacom%20Systems.jpg", link: "https://www.facebook.com/AlvacomSystems" },
-                        { img: "https://primerastereo.netlify.app/KINESIOLOGIA2.gif", link: "https://www.instagram.com/nely_alvarez" },
-                        { img: "https://primerastereoprueba.netlify.app/Diseño sin título.gif", link: "http://www.en3d.io" },
-                        { img: "https://primera-stereo.netlify.app/BANNER%20ELENA.png", link: "https://api.whatsapp.com/send?phone=+5804127102509" },
-                    ];
-                    let bIdx = 0;
-
-                    function updateBanners() {
-                        if(banners.length > 0) {
-                            document.getElementById('ad-banner').src = banners[bIdx].img;
-                            document.getElementById('ad-link').href = banners[bIdx].link;
-                            bIdx = (bIdx + 1) % banners.length;
-                        }
-                    }
-               
-                    function registrarVisita() {
-                        var visitasHistoricas = 1236783; 
-                        var nuevasVisitas = parseInt(localStorage.getItem('visitas_nuevas') || 0) + 1;
-                        localStorage.setItem('visitas_nuevas', nuevasVisitas);
-                        
-                        var totalSuma = visitasHistoricas + nuevasVisitas;
-                        document.getElementById('mi-contador').innerText = totalSuma.toLocaleString();
-                        
-                        updateBanners();
-                        setInterval(updateBanners, 10000);
-                    }
-                </script>
             </footer>
         </div>
     </div>
 
     <script>
+        const banners = [
+            { img: "https://primerastereo.netlify.app/disponible2.jpg", link: "https://api.whatsapp.com/send?phone=+5804127097429" },
+            { img: "https://primerastereo.netlify.app/Alvacom%20Systems.jpg", link: "https://www.facebook.com/AlvacomSystems" },
+            { img: "https://primerastereo.netlify.app/KINESIOLOGIA2.gif", link: "https://www.instagram.com/nely_alvarez" },
+            { img: "https://primerastereoprueba.netlify.app/Diseño sin título.gif", link: "http://www.en3d.io" },
+            { img: "https://primera-stereo.netlify.app/BANNER%20ELENA.png", link: "https://api.whatsapp.com/send?phone=+5804127102509" },
+        ];
+        let bIdx = 0;
+
+        function updateBanners() {
+            if(banners.length > 0) {
+                document.getElementById('ad-banner').src = banners[bIdx].img;
+                document.getElementById('ad-link').href = banners[bIdx].link;
+                bIdx = (bIdx + 1) % banners.length;
+            }
+        }
+   
+        function registrarVisita() {
+            var visitasHistoricas = 1236783; 
+            var nuevasVisitas = parseInt(localStorage.getItem('visitas_nuevas') || 0) + 1;
+            localStorage.setItem('visitas_nuevas', nuevasVisitas);
+            
+            var totalSuma = visitasHistoricas + nuevasVisitas;
+            document.getElementById('mi-contador').innerText = totalSuma.toLocaleString();
+            
+            updateBanners();
+            setInterval(updateBanners, 10000);
+        }
+
         window.handleiTunesResponse = function(data) {
             const albumArtBg = document.getElementById('album-art-bg');
             const defaultLogoUrl = 'https://primera-stereo.netlify.app/11.png';
@@ -200,7 +196,7 @@
             const metadataApiUrl = 'https://api.laut.fm/station/primerastereo/current_song';
             const defaultLogoUrl = 'https://primera-stereo.netlify.app/11.png'; 
             const YOUTUBE_API_KEY = "AIzaSyB587PR4Xec8bS3VpFu7si5lYZwYweyijQ";
-            let ytPlayer = null, isPlayerReady = false, lastVideoQuery = "", currentArtistGlobal = "", currentTrackGlobal = "", isPlaying = false, metadataInterval = null, visualizerInterval = null;
+            let ytPlayer = null, isPlayerReady = false, currentArtistGlobal = "", currentTrackGlobal = "", isPlaying = false, metadataInterval = null, visualizerInterval = null;
             
             audioPlayer.src = streamUrl;
             audioPlayer.volume = volumeSlider.value;
