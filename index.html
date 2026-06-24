@@ -20,7 +20,7 @@
         .controls-hidden { opacity: 0 !important; pointer-events: none !important; }
 
         .header-section { z-index: 10; width: 100%; margin-top: 0px; flex-shrink: 0; }
-        .main-logo { font-size: 22pt; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; background: linear-gradient(45deg, #ff7b00, #ffae00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(0,0,0,0.3); }
+        .main-logo font-size: 22pt; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; background: linear-gradient(45deg, #ff7b00, #ffae00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(0,0,0,0.3); }
         .sub-logo { font-size: 13pt; font-weight: bold; color: #00d4ff; letter-spacing: 2px; margin-top: -2px; text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.9); }
         .player-card { position: relative; overflow: hidden; z-index: 5; width: 100%; max-width: 440px; height: 440px; background: #14161a; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9); margin: auto 0 !important; flex-shrink: 0; }
         .album-art-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; background-size: cover; background-position: center; background-repeat: no-repeat; transition: opacity 0.4s ease; opacity: 1; }
@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
+            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -131,13 +131,13 @@
                 </span>
             </div>
 
-            <footer style="width: 100%;">
+            <div style="width: 100%;">
                 <p style="margin: 0px 0 0 0; color: #ff7b00; font-size: 10px; font-family: sans-serif; text-align: center;">Gracias por visitarnos!</p>
                 <div style="font-family: Arial, sans-serif; font-size: 10px; color: #00d4ff; margin-top: 2px; text-align: center;">
                     Visitas: <span id="mi-contador" style="font-weight: bold; color: #ff7b00;">1,236,783</span>
                 </div>
                 <img src="https://counter7.optistats.ovh/private/contadorvisitasgratis.php?c=m3b8llx9qnmw761p4f9b8efb4899b82c" style="display:none;" alt="contador" onload="registrarVisita()">
-            </footer>
+            </div>
         </div>
     </div>
 
@@ -216,6 +216,7 @@
             let currentKeyIndex = 0; // Apunta siempre a la llave activa
             
             let ytPlayer = null, isPlayerReady = false, currentArtistGlobal = "", currentTrackGlobal = "", isPlaying = false, metadataInterval = null, visualizerInterval = null;
+            let estaBuscandoVideo = false; // 🔒 Candado de control para evitar disparos simultáneos en milisegundos
             
             audioPlayer.src = streamUrl;
             audioPlayer.volume = volumeSlider.value;
@@ -288,6 +289,13 @@
                     return;
                 }
 
+                // 🛡️ CONTROL ANTIDISPARO SIMULTÁNEO EN MILISEGUNDOS
+                if (estaBuscandoVideo) {
+                    console.log("⏳ Solicitud de búsqueda retenida para evitar doble disparo simultáneo.");
+                    return;
+                }
+                estaBuscandoVideo = true;
+
                 let cleanTrack = track.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
                 const videoQuery = `${artist} ${cleanTrack} -lyrics -karaoke -lyric -instrumental`;
                 
@@ -300,6 +308,7 @@
                 if (cachedVideoId) {
                     console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
                     executeVideoLoad(cachedVideoId);
+                    estaBuscandoVideo = false; // Liberamos bandera
                     return;
                 }
 
@@ -329,13 +338,16 @@
                         if (validVideo) {
                             localStorage.setItem(`yt_${cacheKey}`, validVideo.id.videoId);
                             executeVideoLoad(validVideo.id.videoId);
-                            return; // Buscado con éxito, salimos de la función
+                            estaBuscandoVideo = false; // Buscado con éxito, liberamos bandera y salimos
+                            return; 
                         } else {
                             fallbackToArtMode();
+                            estaBuscandoVideo = false;
                             return;
                         }
                     } catch (error) { 
                         fallbackToArtMode(); 
+                        estaBuscandoVideo = false;
                         return;
                     }
                 }
@@ -343,6 +355,7 @@
                 // Si el bucle termina y todas las llaves se agotaron por completo
                 console.error("Todas las API Keys del rotador se han agotado.");
                 fallbackToArtMode();
+                estaBuscandoVideo = false; // Liberamos bandera tras terminar el ciclo completo
             }
 
             function fallbackToArtMode() {
@@ -355,7 +368,7 @@
                 if (!isPlayerReady || !ytPlayer) return;
                 try {
                     ytPlayer.loadVideoById({ videoId: videoId, startSeconds: 0 });
-                    ytPlayer.mute();
+                    try { ytPlayer.mute(); } catch(e){}
                     playerCard.classList.remove('art-mode');
                     playerCard.classList.add('video-mode');
                     hoverControl.classList.add('controls-hidden'); 
