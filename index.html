@@ -297,10 +297,13 @@
                 const cachedVideoId = localStorage.getItem(`yt_${cacheKey}`);
                 
                 if (cachedVideoId) {
-                    console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
-                    executeVideoLoad(cachedVideoId);
-                    return;
-                }
+    console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
+    executeVideoLoad(cachedVideoId);
+    return;
+}
+
+// 🔑 AGREGA ESTO JUSTO AQUÍ (Antes de hacer la petición fetch a YouTube):
+console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
                 
                 // Intentar buscar usando el índice de la llave actual
                 while (currentKeyIndex < YOUTUBE_API_KEYS.length) {
