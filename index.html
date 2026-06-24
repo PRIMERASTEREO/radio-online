@@ -111,11 +111,11 @@
             <div id="banner-container" style="width: 100%; max-width: 440px; margin: 0 auto 0px auto; display: flex; flex-direction: column; align-items: center; padding: 0 0px;">
                 <div style="font-size: 12px; color: #fc7f03 !important; font-weight: bold; font-family: Verdana; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase;">Tu Publicidad Aquí</div>
                 <a id="ad-link" href="" target="_blank" style="width: 100%; display: block;">
-                    <img id="ad-banner" src="https://primerastereo.netlify.app/disponible3.jpg" alt="Publicidad" style="width: 100%; height: 50px; object-fit: fill; border: 0; border-radius: 4px;">
+                    <img id="ad-banner" src="https://primerastereo.netlify.app/disponible3.jpg" alt="Tu Publicidad Aquí" style="width: 100%; height: 50px; object-fit: fill; border: 0; border-radius: 4px;">
                 </a>
             </div>
 
-            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
+            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -297,13 +297,13 @@
                 const cachedVideoId = localStorage.getItem(`yt_${cacheKey}`);
                 
                 if (cachedVideoId) {
-    console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
-    executeVideoLoad(cachedVideoId);
-    return;
-}
+                    console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
+                    executeVideoLoad(cachedVideoId);
+                    return;
+                }
 
-// 🔑 AGREGA ESTO JUSTO AQUÍ (Antes de hacer la petición fetch a YouTube):
-console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
+                // 🔑 AGREGA ESTO JUSTO AQUÍ (Antes de hacer la petición fetch a YouTube):
+                console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
                 
                 // Intentar buscar usando el índice de la llave actual
                 while (currentKeyIndex < YOUTUBE_API_KEYS.length) {
@@ -314,7 +314,7 @@ console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + cur
                         
                         // Si la llave actual está agotada (403), saltamos a la siguiente del arreglo
                         if (response.status === 403) {
-                            console.warn(`Llave index ${currentKeyIndex} agotada. Rotando a la siguiente...`);
+                            console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada. Rotando a la siguiente...`);
                             currentKeyIndex++;
                             continue; // Reintenta el bucle 'while' con el nuevo índice de llave
                         }
