@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
+            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -327,11 +327,21 @@
                         const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(videoQuery)}&type=video&key=${activeKey}`;
                         const response = await fetch(searchUrl);
                         
-                        // 🔄 IMPLEMENTACIÓN 2: Detección exhaustiva de cuota agotada (Tanto 403 como 429) para forzar rotación de proyectos
+                        // 🔄 IMPLEMENTACIÓN 2: Detección exhaustiva de cuota agotada (Tanto 403 como 429) con reseteo seguro
                         if (response.status === 403 || response.status === 429) {
                             console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada (Status: ${response.status}). Rotando a la siguiente...`);
                             currentKeyIndex++;
-                            continue; // Reintenta el bucle 'while' con el nuevo índice de llave
+                            if (currentKeyIndex < YOUTUBE_API_KEYS.length) {
+                                estaBuscandoVideo = false;
+                                fallbackToArtMode();
+                                return; 
+                            } else {
+                                currentKeyIndex = 0; 
+                                console.error("Todas las API Keys del rotador se han agotado por hoy.");
+                                fallbackToArtMode();
+                                estaBuscandoVideo = false;
+                                return;
+                            }
                         }
 
                         const data = await response.json();
