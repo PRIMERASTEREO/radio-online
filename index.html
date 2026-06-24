@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
+            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -302,7 +302,7 @@
 
                 let cleanTrack = track.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
                 
-                // 🔍 IMPLEMENTACIÓN 1: Forzar búsquedas de Videos Oficiales estrictos añadiendo el término clave
+                // 🔍 IMPLEMENTACIÓN 1: Búsquedas de Videos Oficiales estrictos
                 const videoQuery = `${artist} ${cleanTrack} "Official Video"`;
                 
                 getAlbumArt(cleanTrack, artist);
@@ -314,20 +314,18 @@
                 if (cachedVideoId) {
                     console.log("Video recuperado del caché local (0 cuota consumida):", cachedVideoId);
                     executeVideoLoad(cachedVideoId);
-                    estaBuscandoVideo = false; // Liberamos bandera
+                    estaBuscandoVideo = false; 
                     return;
                 }
 
                 console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
                 
-                // Intentar buscar usando el índice de la llave actual
                 while (currentKeyIndex < YOUTUBE_API_KEYS.length) {
                     const activeKey = YOUTUBE_API_KEYS[currentKeyIndex];
                     try {
                         const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(videoQuery)}&type=video&key=${activeKey}`;
                         const response = await fetch(searchUrl);
                         
-                        // 🔄 IMPLEMENTACIÓN 2: Detección exhaustiva de cuota agotada (Tanto 403 como 429) con reseteo seguro
                         if (response.status === 403 || response.status === 429) {
                             console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada (Status: ${response.status}). Rotando a la siguiente...`);
                             currentKeyIndex++;
@@ -346,7 +344,6 @@
 
                         const data = await response.json();
                         
-                        // 🛡️ IMPLEMENTACIÓN 3: Verificación rigurosa del título para descartar covers/karaokes y volver a la carátula si no es oficial
                         const validVideo = data.items.find(item => {
                             const title = item.snippet.title.toUpperCase();
                             return !title.includes("COVER") && !title.includes("KARAOKE") && !title.includes("LYRICS") && !title.includes("LYRIC") && !title.includes("REACCION") && !title.includes("REACCIÓN");
@@ -355,7 +352,7 @@
                         if (validVideo) {
                             localStorage.setItem(`yt_${cacheKey}`, validVideo.id.videoId);
                             executeVideoLoad(validVideo.id.videoId);
-                            estaBuscandoVideo = false; // Buscado con éxito, liberamos bandera y salimos
+                            estaBuscandoVideo = false; 
                             return; 
                         } else {
                             console.log("⚠️ No se encontró un video musical oficial válido. Manteniendo carátula fija.");
@@ -371,10 +368,9 @@
                     }
                 }
                 
-                // Si el bucle termina y todas las llaves se agotaron por completo
                 console.error("Todas las API Keys del rotador se han agotado.");
                 fallbackToArtMode();
-                estaBuscandoVideo = false; // Liberamos bandera tras terminar el ciclo completo
+                estaBuscandoVideo = false; 
             }
 
             function fallbackToArtMode() {
@@ -404,13 +400,22 @@
                         statusText.innerHTML = `<span class='metadata-artist'>${currentArtist}</span> - <span class='metadata-track'>${currentTrack}</span>`;
                         if (currentArtist !== currentArtistGlobal || currentTrack !== currentTrackGlobal) {
                             currentArtistGlobal = currentArtist; currentTrackGlobal = currentTrack;
+                            
+                            // 🚀 MEJORA DE ACCIÓN INMEDIATA: Corta el video anterior al instante para forzar sincronismo visual
+                            if (ytPlayer && ytPlayer.stopVideo) {
+                                try { ytPlayer.stopVideo(); } catch(e){}
+                            }
+                            fallbackToArtMode(); // Regresa de inmediato al modo arte/carátula limpia mientras carga el nuevo
+                            
                             searchAndPlayVideo(currentTrack, currentArtist);
                         }
                     }
                 } catch (error) { console.error(error); }
             }
             updateMetadata();
-            setInterval(updateMetadata, 60000);
+            
+            // 🚀 MEJORA DE TIEMPO: Cambiado de 60000ms (1 minuto) a 5000ms (5 segundos) para sincronizar al instante
+            setInterval(updateMetadata, 5000);
 
             // 🚀 SISTEMA DE AUTOARRANQUE SEGURO Y AUTOMÁTICO TRAS CARGA
             setTimeout(() => {
