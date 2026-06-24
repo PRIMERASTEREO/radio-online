@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
+            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -195,7 +195,27 @@
             const streamUrl = 'https://primerastereo.stream.laut.fm/primerastereo';
             const metadataApiUrl = 'https://api.laut.fm/station/primerastereo/current_song';
             const defaultLogoUrl = 'https://primera-stereo.netlify.app/11.png'; 
-            const YOUTUBE_API_KEY = "AIzaSyB587PR4Xec8bS3VpFu7si5lYZwYweyijQ";
+            
+            // 🔑 ARREGLO DE LLAVES INDEPENDIENTES (Pon aquí tus diferentes llaves)
+            const YOUTUBE_API_KEYS = [
+
+                "AIzaSyBg2xTKCbe0ZTZzisnDFyb-c_Hw4J0kIv0", // Llave Proyecto 1(Actual)				
+                "AIzaSyC5I-kdRPJpEYPnVPDz4W6jHSTXsn7EMhk", // Llave Proyecto 2
+                "AIzaSyBTg0pMsfux7GqmreETKukD16O5Tl3iS4Q", // Llave Proyecto 3
+                "AIzaSyA-GK-3or7nxT9TdOtLgl9j6RVW2rqnWJ8", // Llave Proyecto 4
+                "AIzaSyBFqPSg8UPMCzw7K124nykiZQvnXrBzAAw", // Llave Proyecto 5
+                "AIzaSyAB4cpqKmQkp3by1pFrP_1k9lKHdBZpnWE", // Llave Proyecto 6
+                "AIzaSyBSs7Tt5NpjJW1179goZ90KHGDhAo0Fjj4", // Llave Proyecto 7
+                "AIzaSyAONHjBvbc2U-mXHXSK_gsJNHX4glVTLps", // Llave Proyecto 8
+                "AIzaSyDzqfVE-iNft7AdlDluuIdaLK-8o5s5H18", // Llave Proyecto 9
+                "AIzaSyDzh3gdntYvz8OY3nIuY58yhtv89EOeGJ8", // Llave Proyecto 10
+                "AIzaSyCxU2onHMctFbLj0UKLt-SHjw8V80bmGgg", // Llave Proyecto 11
+                "AIzaSyDtVkrxNt62ifQzOf_arUE6XwK6lAVZ4rs", // Llave Proyecto 12
+                "AIzaSyA7wsWPS20LXSGEpNhjYvSudC1Yq7bZMcc", // Llave Proyecto 13
+                "AIzaSyB587PR4Xec8bS3VpFu7si5lYZwYweyijQ"  // Llave Proyecto 14 (Última - Sin coma)
+            ];
+            let currentKeyIndex = 0; // Apunta siempre a la llave activa
+            
             let ytPlayer = null, isPlayerReady = false, currentArtistGlobal = "", currentTrackGlobal = "", isPlaying = false, metadataInterval = null, visualizerInterval = null;
             
             audioPlayer.src = streamUrl;
@@ -282,32 +302,43 @@
                     return;
                 }
                 
-                try {
-                    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(videoQuery)}&type=video&key=${YOUTUBE_API_KEY}`;
-                    const response = await fetch(searchUrl);
-                    
-                    // Manejar error 403 por falta de cuota en el servidor de Google
-                    if (response.status === 403) {
-                        console.warn("Cuota de la API de YouTube agotada por el día de hoy. Entrando en modo carátula.");
-                        fallbackToArtMode();
+                // Intentar buscar usando el índice de la llave actual
+                while (currentKeyIndex < YOUTUBE_API_KEYS.length) {
+                    const activeKey = YOUTUBE_API_KEYS[currentKeyIndex];
+                    try {
+                        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(videoQuery)}&type=video&key=${activeKey}`;
+                        const response = await fetch(searchUrl);
+                        
+                        // Si la llave actual está agotada (403), saltamos a la siguiente del arreglo
+                        if (response.status === 403) {
+                            console.warn(`Llave index ${currentKeyIndex} agotada. Rotando a la siguiente...`);
+                            currentKeyIndex++;
+                            continue; // Reintenta el bucle 'while' con el nuevo índice de llave
+                        }
+
+                        const data = await response.json();
+                        const validVideo = data.items.find(item => {
+                            const title = item.snippet.title.toUpperCase();
+                            return !title.includes("LYRICS") && !title.includes("KARAOKE") && !title.includes("LYRIC");
+                        });
+
+                        if (validVideo) {
+                            localStorage.setItem(`yt_${cacheKey}`, validVideo.id.videoId);
+                            executeVideoLoad(validVideo.id.videoId);
+                            return; // Buscado con éxito, salimos de la función
+                        } else {
+                            fallbackToArtMode();
+                            return;
+                        }
+                    } catch (error) { 
+                        fallbackToArtMode(); 
                         return;
                     }
-
-                    const data = await response.json();
-                    
-                    const validVideo = data.items.find(item => {
-                        const title = item.snippet.title.toUpperCase();
-                        return !title.includes("LYRICS") && !title.includes("KARAOKE") && !title.includes("LYRIC");
-                    });
-
-                    if (validVideo) {
-                        // Guardamos el ID en caché para evitar consultarlo de nuevo a la API en el futuro
-                        localStorage.setItem(`yt_${cacheKey}`, validVideo.id.videoId);
-                        executeVideoLoad(validVideo.id.videoId);
-                    } else {
-                        fallbackToArtMode();
-                    }
-                } catch (error) { fallbackToArtMode(); }
+                }
+                
+                // Si el bucle termina y todas las llaves se agotaron por completo
+                console.error("Todas las API Keys del rotador se han agotado.");
+                fallbackToArtMode();
             }
 
             function fallbackToArtMode() {
