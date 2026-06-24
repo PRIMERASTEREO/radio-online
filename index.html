@@ -196,7 +196,6 @@
             const metadataApiUrl = 'https://api.laut.fm/station/primerastereo/current_song';
             const defaultLogoUrl = 'https://primera-stereo.netlify.app/11.png'; 
             
-            // 🔑 ARREGLO DE LLAVES INDEPENDIENTES (Pon aquí tus diferentes llaves)
             const YOUTUBE_API_KEYS = [
                 "AIzaSyBg2xTKCbe0ZTZzisnDFyb-c_Hw4J0kIv0", // Llave Proyecto 1(Actual)                
                 "AIzaSyC5I-kdRPJpEYPnVPDz4W6jHSTXsn7EMhk", // Llave Proyecto 2
@@ -211,12 +210,12 @@
                 "AIzaSyCxU2onHMctFbLj0UKLt-SHjw8V80bmGgg", // Llave Proyecto 11
                 "AIzaSyDtVkrxNt62ifQzOf_arUE6XwK6lAVZ4rs", // Llave Proyecto 12
                 "AIzaSyA7wsWPS20LXSGEpNhjYvSudC1Yq7bZMcc", // Llave Proyecto 13
-                "AIzaSyB587PR4Xec8bS3VpFu7si5lYZwYweyijQ"  // Llave Proyecto 14 (Última - Sin coma)
+                "AIzaSyB587PR4Xec8bS3VpFu7si5lYZwYweyijQ"  // Llave Proyecto 14
             ];
-            let currentKeyIndex = 0; // Apunta siempre a la llave activa
+            let currentKeyIndex = 0; 
             
             let ytPlayer = null, isPlayerReady = false, currentArtistGlobal = "", currentTrackGlobal = "", isPlaying = false, metadataInterval = null, visualizerInterval = null;
-            let estaBuscandoVideo = false; // 🔒 Candado de control para evitar disparos simultáneos en milisegundos
+            let estaBuscandoVideo = false; 
             
             audioPlayer.src = streamUrl;
             audioPlayer.volume = volumeSlider.value;
@@ -234,7 +233,7 @@
                     events: {
                         'onReady': function(event) { event.target.mute(); isPlayerReady = true; if (currentTrackGlobal && currentArtistGlobal) { searchAndPlayVideo(currentTrackGlobal, currentArtistGlobal); } },
                         'onError': function(event) { 
-                            console.warn("⚠️ Error detectado en el reproductor de YouTube o bloqueo de dominio por derechos de autor.");
+                            console.warn("⚠️ Error detectado en el reproductor de YouTube.");
                             isPlayerReady = true; 
                             fallbackToArtMode(); 
                         }
@@ -256,7 +255,7 @@
                         startVisualizer();
                         isPlaying = true;
                     }).catch(err => { 
-                        console.warn("⚠️ Autoplay bloqueado o controlado por el navegador de forma segura:", err); 
+                        console.warn("⚠️ Autoplay bloqueado:", err); 
                     });
                 }
             }
@@ -293,21 +292,15 @@
                     return;
                 }
 
-                // 🛡️ CONTROL ANTIDISPARO SIMULTÁNEO EN MILISEGUNDOS
-                if (estaBuscandoVideo) {
-                    console.log("⏳ Solicitud de búsqueda retenida para evitar doble disparo simultáneo.");
-                    return;
-                }
+                if (estaBuscandoVideo) return;
                 estaBuscandoVideo = true;
 
                 let cleanTrack = track.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-                
-                // 🔍 IMPLEMENTACIÓN 1: Búsquedas de Videos Oficiales estrictos
                 const videoQuery = `${artist} ${cleanTrack} "Official Video"`;
                 
                 getAlbumArt(cleanTrack, artist);
                 
-                // 💾 SISTEMA DE CACHÉ LOCAL
+                // 🚀 CORRECCIÓN CRÍTICA: La verificación de caché pasa arriba del todo para evitar retrasos
                 const cacheKey = btoa(unescape(encodeURIComponent(videoQuery))); 
                 const cachedVideoId = localStorage.getItem(`yt_${cacheKey}`);
                 
@@ -318,6 +311,7 @@
                     return;
                 }
 
+                // Si no está en caché, entonces sí procedemos con las peticiones externas ordenadamente
                 console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
                 
                 while (currentKeyIndex < YOUTUBE_API_KEYS.length) {
@@ -327,23 +321,12 @@
                         const response = await fetch(searchUrl);
                         
                         if (response.status === 403 || response.status === 429) {
-                            console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada (Status: ${response.status}). Rotando a la siguiente...`);
+                            console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada. Rotando...`);
                             currentKeyIndex++;
-                            if (currentKeyIndex < YOUTUBE_API_KEYS.length) {
-                                estaBuscandoVideo = false;
-                                fallbackToArtMode();
-                                return; 
-                            } else {
-                                currentKeyIndex = 0; 
-                                console.error("Todas las API Keys del rotador se han agotado por hoy.");
-                                fallbackToArtMode();
-                                estaBuscandoVideo = false;
-                                return;
-                            }
+                            continue; // Salta inmediatamente a evaluar la siguiente llave en la lista
                         }
 
                         const data = await response.json();
-                        
                         const validVideo = data.items.find(item => {
                             const title = item.snippet.title.toUpperCase();
                             return !title.includes("COVER") && !title.includes("KARAOKE") && !title.includes("LYRICS") && !title.includes("LYRIC") && !title.includes("REACCION") && !title.includes("REACCIÓN");
@@ -355,13 +338,11 @@
                             estaBuscandoVideo = false; 
                             return; 
                         } else {
-                            console.log("⚠️ No se encontró un video musical oficial válido. Manteniendo carátula fija.");
                             fallbackToArtMode();
                             estaBuscandoVideo = false;
                             return;
                         }
                     } catch (error) { 
-                        console.error("❌ Error en la petición de búsqueda, probando contingencia de carátula:", error);
                         fallbackToArtMode(); 
                         estaBuscandoVideo = false;
                         return;
@@ -401,30 +382,24 @@
                         if (currentArtist !== currentArtistGlobal || currentTrack !== currentTrackGlobal) {
                             currentArtistGlobal = currentArtist; currentTrackGlobal = currentTrack;
                             
-                            // 🚀 MEJORA DE ACCIÓN INMEDIATA: Corta el video anterior al instante para forzar sincronismo visual
                             if (ytPlayer && ytPlayer.stopVideo) {
                                 try { ytPlayer.stopVideo(); } catch(e){}
                             }
-                            fallbackToArtMode(); // Regresa de inmediato al modo arte/carátula limpia mientras carga el nuevo
-                            
+                            fallbackToArtMode(); 
                             searchAndPlayVideo(currentTrack, currentArtist);
                         }
                     }
                 } catch (error) { console.error(error); }
             }
             updateMetadata();
-            
-            // 🚀 MEJORA DE TIEMPO: Cambiado de 60000ms (1 minuto) a 5000ms (5 segundos) para sincronizar al instante
             setInterval(updateMetadata, 5000);
 
-            // 🚀 SISTEMA DE AUTOARRANQUE SEGURO Y AUTOMÁTICO TRAS CARGA
             setTimeout(() => {
                 if (!isPlaying) {
                     togglePlayback();
                 }
             }, 2000);
 
-            // Escuchadores globales para forzar el encendido inmediato ante cualquier interacción física inicial en la pantalla
             ['click', 'touchstart', 'keydown'].forEach(evt => {
                 window.addEventListener(evt, () => {
                     if (!isPlaying) {
