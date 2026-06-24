@@ -10,7 +10,7 @@
     <link rel="icon" href="https://primera-stereo.netlify.app/PSRO5-5.png" sizes="192x192" />
     <link rel="icon" href="https://primera-stereo.netlify.app/PSRO5-5.png" sizes="32x32" /> 
     <link rel="icon" href="https://primera-stereo.netlify.app/PSRO5-5.png" sizes="16x16" />    
-    <link rel="apple-touch-icon" href="https://primera-stereo.netlify.app/PSRO5-5.png" />
+    <link class="apple-touch-icon" href="https://primera-stereo.netlify.app/PSRO5-5.png" />
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,7 +20,7 @@
         .controls-hidden { opacity: 0 !important; pointer-events: none !important; }
 
         .header-section { z-index: 10; width: 100%; margin-top: 0px; flex-shrink: 0; }
-        .main-logo font-size: 22pt; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; background: linear-gradient(45deg, #ff7b00, #ffae00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(0,0,0,0.3); }
+        .main-logo { font-size: 22pt; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; background: linear-gradient(45deg, #ff7b00, #ffae00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 10px rgba(0,0,0,0.3); }
         .sub-logo { font-size: 13pt; font-weight: bold; color: #00d4ff; letter-spacing: 2px; margin-top: -2px; text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.9); }
         .player-card { position: relative; overflow: hidden; z-index: 5; width: 100%; max-width: 440px; height: 440px; background: #14161a; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9); margin: auto 0 !important; flex-shrink: 0; }
         .album-art-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 6; background-size: cover; background-position: center; background-repeat: no-repeat; transition: opacity 0.4s ease; opacity: 1; }
@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
+            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -233,7 +233,11 @@
                     playerVars: { 'autoplay': 1, 'controls': 0, 'rel': 0, 'loop': 1, 'mute': 1, 'playsinline': 1, 'disablekb': 1, 'origin': window.location.origin },
                     events: {
                         'onReady': function(event) { event.target.mute(); isPlayerReady = true; if (currentTrackGlobal && currentArtistGlobal) { searchAndPlayVideo(currentTrackGlobal, currentArtistGlobal); } },
-                        'onError': function() { isPlayerReady = true; fallbackToArtMode(); }
+                        'onError': function(event) { 
+                            console.warn("⚠️ Error detectado en el reproductor de YouTube o bloqueo de dominio por derechos de autor.");
+                            isPlayerReady = true; 
+                            fallbackToArtMode(); 
+                        }
                     }
                 });
             };
@@ -297,7 +301,9 @@
                 estaBuscandoVideo = true;
 
                 let cleanTrack = track.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-                const videoQuery = `${artist} ${cleanTrack} -lyrics -karaoke -lyric -instrumental`;
+                
+                // 🔍 IMPLEMENTACIÓN 1: Forzar búsquedas de Videos Oficiales estrictos añadiendo el término clave
+                const videoQuery = `${artist} ${cleanTrack} "Official Video"`;
                 
                 getAlbumArt(cleanTrack, artist);
                 
@@ -312,7 +318,6 @@
                     return;
                 }
 
-                // 🔑 AGREGA ESTO JUSTO AQUÍ (Antes de hacer la petición fetch a YouTube):
                 console.log("🔍 Canción nueva. Buscando en YouTube con Llave Índice: " + currentKeyIndex + " (Proyecto " + (currentKeyIndex + 1) + ")");
                 
                 // Intentar buscar usando el índice de la llave actual
@@ -322,17 +327,19 @@
                         const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(videoQuery)}&type=video&key=${activeKey}`;
                         const response = await fetch(searchUrl);
                         
-                        // Si la llave actual está agotada (403), saltamos a la siguiente del arreglo
-                        if (response.status === 403) {
-                            console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada. Rotando a la siguiente...`);
+                        // 🔄 IMPLEMENTACIÓN 2: Detección exhaustiva de cuota agotada (Tanto 403 como 429) para forzar rotación de proyectos
+                        if (response.status === 403 || response.status === 429) {
+                            console.warn(`⚠️ Llave Proyecto ${currentKeyIndex + 1} agotada (Status: ${response.status}). Rotando a la siguiente...`);
                             currentKeyIndex++;
                             continue; // Reintenta el bucle 'while' con el nuevo índice de llave
                         }
 
                         const data = await response.json();
+                        
+                        // 🛡️ IMPLEMENTACIÓN 3: Verificación rigurosa del título para descartar covers/karaokes y volver a la carátula si no es oficial
                         const validVideo = data.items.find(item => {
                             const title = item.snippet.title.toUpperCase();
-                            return !title.includes("LYRICS") && !title.includes("KARAOKE") && !title.includes("LYRIC");
+                            return !title.includes("COVER") && !title.includes("KARAOKE") && !title.includes("LYRICS") && !title.includes("LYRIC") && !title.includes("REACCION") && !title.includes("REACCIÓN");
                         });
 
                         if (validVideo) {
@@ -341,11 +348,13 @@
                             estaBuscandoVideo = false; // Buscado con éxito, liberamos bandera y salimos
                             return; 
                         } else {
+                            console.log("⚠️ No se encontró un video musical oficial válido. Manteniendo carátula fija.");
                             fallbackToArtMode();
                             estaBuscandoVideo = false;
                             return;
                         }
                     } catch (error) { 
+                        console.error("❌ Error en la petición de búsqueda, probando contingencia de carátula:", error);
                         fallbackToArtMode(); 
                         estaBuscandoVideo = false;
                         return;
