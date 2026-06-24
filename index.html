@@ -115,7 +115,7 @@
                 </a>
             </div>
 
-            <div class="social-title">¡SÍGUENOS EN NUESTRAS REDES SOCIALES!</div>
+            <div class="social-title">SÍGUENOS EN NUESTRAS REDES SOCIALES</div>
             <div class="social-icons">
                 <a href="https://www.facebook.com/PrimeraStereoRadio" class="social-btn facebook" target="_blank"><i class="fab fa-facebook-f"></i></a>
                 <a href="https://www.instagram.com/Primera.Stereo/" class="social-btn instagram" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -198,7 +198,6 @@
             
             // 🔑 ARREGLO DE LLAVES INDEPENDIENTES (Pon aquí tus diferentes llaves)
             const YOUTUBE_API_KEYS = [
-
                 "AIzaSyBg2xTKCbe0ZTZzisnDFyb-c_Hw4J0kIv0", // Llave Proyecto 1(Actual)				
                 "AIzaSyC5I-kdRPJpEYPnVPDz4W6jHSTXsn7EMhk", // Llave Proyecto 2
                 "AIzaSyBTg0pMsfux7GqmreETKukD16O5Tl3iS4Q", // Llave Proyecto 3
@@ -379,11 +378,21 @@
             updateMetadata();
             setInterval(updateMetadata, 60000);
 
+            // 🚀 SISTEMA DE AUTOARRANQUE SEGURO Y AUTOMÁTICO TRAS CARGA
             setTimeout(() => {
                 if (!isPlaying) {
                     togglePlayback();
                 }
             }, 2000);
+
+            // Escuchadores globales para forzar el encendido inmediato ante cualquier interacción física inicial en la pantalla
+            ['click', 'touchstart', 'keydown'].forEach(evt => {
+                window.addEventListener(evt, () => {
+                    if (!isPlaying) {
+                        togglePlayback();
+                    }
+                }, { once: true });
+            });
         });
     </script>
 </body>
